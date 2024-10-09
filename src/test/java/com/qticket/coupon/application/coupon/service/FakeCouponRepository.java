@@ -32,17 +32,13 @@ public class FakeCouponRepository implements CouponRepository {
             ReflectionTestUtils.setField(coupon, "id", uuid);
         }
         couponStorage.put(coupon.getId(), coupon);
-        System.out.println("쿠폰 저장됨: couponId = " + coupon.getId());
-        System.out.println("couponStorage = " + couponStorage);
         Coupon coupon1 = couponStorage.get(coupon.getId());
-        System.out.println("coupon1 = " + coupon1.getId());
         return coupon;
     }
 
     @Override
     public Optional<Coupon> findById(UUID couponId) {
-        System.out.println("쿠폰 조회 요청: couponId = " + couponId);
-        System.out.println("couponStorage = " + couponStorage);
+
         return Optional.ofNullable(couponStorage.get(couponId));
     }
 

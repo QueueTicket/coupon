@@ -30,11 +30,14 @@ public class CouponEventTypeHandler implements CouponTypeHandler {
     @Override
     @Transactional
     public Coupon create(CouponCreateRequestDto couponCreateRequestDto) {
-        validateEvent(couponCreateRequestDto);
+
+        List<UUID> eventIds = couponCreateRequestDto.getEventId();
+
+        validateEvent(eventIds);
 
         Coupon coupon = CouponTypeHandler.toEntity(couponCreateRequestDto);
-        List<UUID> eventIdList = couponCreateRequestDto.getEventId();
-        List<CouponEvent> couponEvents = eventIdList.stream()
+
+        List<CouponEvent> couponEvents = eventIds.stream()
                 .map(eventId -> CouponEvent.create(eventId, coupon))
                 .toList();
 
@@ -43,9 +46,8 @@ public class CouponEventTypeHandler implements CouponTypeHandler {
     }
 
 
-    private void validateEvent(CouponCreateRequestDto couponCreateRequestDto) {
-        List<UUID> eventId = couponCreateRequestDto.getEventId();
-        eventId.stream()
+    private void validateEvent(List<UUID> eventIds) {
+        eventIds.stream()
                 .map(this::getEventById)
                 .forEach(this::validateEventDate);
     }

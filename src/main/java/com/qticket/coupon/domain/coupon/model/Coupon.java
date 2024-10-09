@@ -26,9 +26,11 @@ public class Coupon extends BaseEntity {
     @Column(nullable = false)
     private int discountAmount;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DiscountPolicy discountPolicy;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CouponTarget target;
 
@@ -50,6 +52,8 @@ public class Coupon extends BaseEntity {
     @Column(nullable = false)
     private int usageLimit;
 
+    @Column(nullable = false)
+    private int usageQuantity = 0;
 
     public static Coupon create(String name,
                                 int discountAmount,
@@ -93,5 +97,9 @@ public class Coupon extends BaseEntity {
         this.minSpendAmount = minSpendAmount;
         this.maxQuantity = maxQuantity;
         this.usageLimit = usageLimit;
+    }
+
+    public void issue() {
+        this.issuedQuantity ++;
     }
 }

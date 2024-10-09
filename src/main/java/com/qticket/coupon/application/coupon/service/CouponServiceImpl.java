@@ -3,20 +3,26 @@ package com.qticket.coupon.application.coupon.service;
 import com.qticket.coupon.application.coupon.dto.request.CouponCreateRequestDto;
 import com.qticket.coupon.application.coupon.dto.request.CouponDeleteRequestDto;
 import com.qticket.coupon.application.coupon.dto.request.CouponUpdateRequestDto;
+import com.qticket.coupon.application.coupon.dto.request.IssueRequestDto;
 import com.qticket.coupon.application.coupon.dto.response.CouponCreateResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.CouponDeleteResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.CouponUpdateResponseDto;
+import com.qticket.coupon.application.coupon.exception.AlreadyIssuedUserException;
 import com.qticket.coupon.application.coupon.exception.CouponNotFoundException;
 import com.qticket.coupon.application.coupon.exception.UnauthorizedAccessException;
+import com.qticket.coupon.application.coupon.service.couponmessage.Producer;
 import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeHandler;
 import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeRegistry;
 import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeRegistryImpl;
 import com.qticket.coupon.domain.coupon.model.Coupon;
 import com.qticket.coupon.domain.coupon.repository.CouponRepository;
+import com.qticket.coupon.domain.couponuser.model.CouponUser;
+import com.qticket.coupon.domain.couponuser.repository.CouponUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -25,6 +31,8 @@ public class CouponServiceImpl implements CouponService {
 
     private final CouponRepository couponRepository;
     private final CouponTypeRegistry couponTypeRegistry;
+    private final CouponUserRepository couponUserRepository;
+    private final Producer producer;
 
     @Override
     @Transactional
@@ -81,6 +89,36 @@ public class CouponServiceImpl implements CouponService {
                 updateRequestDto.getMinSpendAmount(),
                 updateRequestDto.getUsageLimit(),
                 updateRequestDto.getMaxQuantity());
+    }
+
+    @Override
+    public void sendIssueMessage(Long userId, String userRole, IssueRequestDto issueRequestDto) {
+        isAdminUser(userRole);
+        producer.sendIssueCouponMessage(userId, userRole, issueRequestDto);
+
+    }
+
+    @Override
+    @Transactional
+    public void issue(IssueRequestDto issueRequestDto) {
+        UUID couponId = issueRequestDto.getCouponId();
+        Long userId = issueRequestDto.getUserId();
+        Coupon coupon = getCouponById(couponId);
+
+        List<CouponUser> couponUsers = couponUserRepository.findAllByUserIdAndCoupon(userId, coupon);
+        validateAlreadyIssued(couponUsers);
+
+        CouponUser couponUser = CouponUser.create(userId, coupon);
+        couponUserRepository.save(couponUser);
+
+        coupon.issue();
+        couponRepository.save(coupon);
+    }
+
+    public void validateAlreadyIssued(List<CouponUser> couponUsers) {
+        if (!couponUsers.isEmpty()) {
+            throw new AlreadyIssuedUserException();
+        }
     }
 
 }
