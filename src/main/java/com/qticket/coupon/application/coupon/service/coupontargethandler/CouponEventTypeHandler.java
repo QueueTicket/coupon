@@ -1,4 +1,4 @@
-package com.qticket.coupon.application.coupon.service;
+package com.qticket.coupon.application.coupon.service.coupontargethandler;
 
 import com.qticket.common.dto.ResponseDto;
 import com.qticket.coupon.application.coupon.dto.request.CouponCreateRequestDto;
@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class CouponEventTargetTypeHandler implements CouponTypeHandler {
+public class CouponEventTypeHandler implements CouponTypeHandler {
 
     private final CouponRepository couponRepository;
     private final CouponEventRepository couponEventRepository;
@@ -34,8 +34,11 @@ public class CouponEventTargetTypeHandler implements CouponTypeHandler {
 
         Coupon coupon = CouponTypeHandler.toEntity(couponCreateRequestDto);
         List<UUID> eventIdList = couponCreateRequestDto.getEventId();
-        eventIdList.forEach(eventId
-                -> couponEventRepository.save(CouponEvent.create(eventId, coupon)));
+        List<CouponEvent> couponEvents = eventIdList.stream()
+                .map(eventId -> CouponEvent.create(eventId, coupon))
+                .toList();
+
+        couponEventRepository.saveAll(couponEvents);
         return couponRepository.save(coupon);
     }
 

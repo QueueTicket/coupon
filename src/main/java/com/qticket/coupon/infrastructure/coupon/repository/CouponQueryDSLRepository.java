@@ -1,4 +1,4 @@
-package com.qticket.coupon.infrastructure.repository;
+package com.qticket.coupon.infrastructure.coupon.repository;
 
 import com.qticket.coupon.domain.coupon.repository.CouponRepository;
 

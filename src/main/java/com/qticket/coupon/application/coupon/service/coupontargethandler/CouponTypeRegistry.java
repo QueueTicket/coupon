@@ -1,13 +1,10 @@
-package com.qticket.coupon.application.coupon.service;
+package com.qticket.coupon.application.coupon.service.coupontargethandler;
 
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
-import org.springframework.stereotype.Component;
 
-import java.util.EnumMap;
-import java.util.Map;
+public interface CouponTypeRegistry {
 
-@Component
-public class CouponTypeRegistry {
-    protected Map<CouponTarget, CouponTypeHandler> CouponTypeHandlerMap = new EnumMap<>(CouponTarget.class);
+    CouponTypeHandler getCouponHandler(CouponTarget couponTarget);
 
+    boolean support(CouponTarget couponTarget);
 }

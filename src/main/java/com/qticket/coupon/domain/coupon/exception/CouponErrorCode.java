@@ -11,6 +11,7 @@ public enum CouponErrorCode implements ErrorCode {
     INVALID_CONCERT_ID(HttpStatus.BAD_REQUEST, "유효하지 않은 concertId 입니다."),
     UNAUTHORIZED_ACCESS(HttpStatus.UNAUTHORIZED, "권한이 없습니다."),
     NOT_FOUND(HttpStatus.NOT_FOUND, "쿠폰을 찾을 수 없습니다."),
+    INVALID_COUPON_TARGET(HttpStatus.BAD_REQUEST, "유효하지 않은 쿠폰 타입입니다."),
     ;
 
     private final HttpStatus status;

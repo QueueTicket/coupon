@@ -6,6 +6,7 @@ import com.qticket.coupon.application.coupon.dto.request.CouponUpdateRequestDto;
 import com.qticket.coupon.application.coupon.dto.response.CouponCreateResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.CouponDeleteResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.CouponUpdateResponseDto;
+import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeRegistry;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import com.qticket.coupon.domain.coupon.enums.DiscountPolicy;
 import com.qticket.coupon.domain.coupon.repository.CouponRepository;
@@ -28,14 +29,16 @@ class CouponServiceIntergrationTest {
 
     private final CouponRepository couponRepository;
     private final CouponService couponService;
+    private final CouponTypeRegistry couponTypeRegistry;
 
     @MockBean
     private AuditorAware<String> auditorAware;
 
     @Autowired
-    public CouponServiceIntergrationTest(CouponRepository couponRepository, CouponService couponService) {
+    public CouponServiceIntergrationTest(CouponRepository couponRepository, CouponService couponService, CouponTypeRegistry couponTypeRegistry) {
         this.couponRepository = couponRepository;
         this.couponService = couponService;
+        this.couponTypeRegistry = couponTypeRegistry;
     }
 
     @Test

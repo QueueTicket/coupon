@@ -6,11 +6,11 @@ import com.qticket.coupon.application.coupon.dto.request.CouponUpdateRequestDto;
 import com.qticket.coupon.application.coupon.dto.response.CouponCreateResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.CouponDeleteResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.CouponUpdateResponseDto;
-import com.qticket.coupon.application.coupon.exception.ConcertIdNotRequiredException;
 import com.qticket.coupon.application.coupon.exception.CouponNotFoundException;
-import com.qticket.coupon.application.coupon.exception.InvalidConcertIdException;
 import com.qticket.coupon.application.coupon.exception.UnauthorizedAccessException;
-import com.qticket.coupon.domain.coupon.enums.CouponTarget;
+import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeHandler;
+import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeRegistry;
+import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeRegistryImpl;
 import com.qticket.coupon.domain.coupon.model.Coupon;
 import com.qticket.coupon.domain.coupon.repository.CouponRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,48 +24,24 @@ import java.util.UUID;
 public class CouponServiceImpl implements CouponService {
 
     private final CouponRepository couponRepository;
+    private final CouponTypeRegistry couponTypeRegistry;
 
     @Override
     @Transactional
     public CouponCreateResponseDto create(Long userId, String userRole, CouponCreateRequestDto requestDto) {
-        Coupon coupon = toEntity(requestDto);
-        isValid(userRole, coupon);
-        Coupon savedCoupon = couponRepository.save(coupon);
-        return new CouponCreateResponseDto(savedCoupon.getId());
 
-    }
-
-    private Coupon toEntity(CouponCreateRequestDto requestDto) {
-        return Coupon.create(
-                requestDto.getName(),
-                requestDto.getDiscountAmount(),
-                requestDto.getDiscountPolicy(),
-                requestDto.getTarget(),
-                requestDto.getStartDate(),
-                requestDto.getExpirationDate(),
-                requestDto.getMinSpendAmount(),
-                requestDto.getUsageLimit(),
-                requestDto.getMaxQuantity());
-    }
-
-    private void isValid(String userRole, Coupon coupon) {
         isAdminUser(userRole);
-        isValidCoupon(coupon);
+
+        CouponTypeHandler couponHandler = couponTypeRegistry.getCouponHandler(requestDto.getTarget());
+        Coupon coupon = couponHandler.create(requestDto);
+
+        return new CouponCreateResponseDto(coupon.getId());
+
     }
 
     private void isAdminUser(String userRole) {
         if (!"ADMIN".equals(userRole)) {
             throw new UnauthorizedAccessException();
-        }
-    }
-
-    private void isValidCoupon(Coupon coupon) {
-        if (CouponTarget.ALL.equals(coupon.getTarget()) && coupon.getConcertId() != null) {
-            throw new ConcertIdNotRequiredException();
-        }
-
-        if (CouponTarget.CONCERT.equals(coupon.getTarget()) && coupon.getConcertId() == null) {
-            throw new InvalidConcertIdException();
         }
     }
 
@@ -80,6 +56,7 @@ public class CouponServiceImpl implements CouponService {
     }
 
     private Coupon getCouponById(UUID couponId) {
+
         return couponRepository.findById(couponId).orElseThrow(CouponNotFoundException::new);
     }
 

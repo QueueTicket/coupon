@@ -1,4 +1,4 @@
-package com.qticket.coupon.infrastructure.repository;
+package com.qticket.coupon.infrastructure.couponseatgrade.repository;
 
 import com.qticket.coupon.domain.couponseatgrade.model.CouponSeatGrade;
 import com.qticket.coupon.domain.couponseatgrade.repository.CouponSeatGradeRepository;

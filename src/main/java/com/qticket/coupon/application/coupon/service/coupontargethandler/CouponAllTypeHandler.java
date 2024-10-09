@@ -1,4 +1,4 @@
-package com.qticket.coupon.application.coupon.service;
+package com.qticket.coupon.application.coupon.service.coupontargethandler;
 
 import com.qticket.coupon.application.coupon.dto.request.CouponCreateRequestDto;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class CouponAllTargetTypeHandler implements CouponTypeHandler {
+public class CouponAllTypeHandler implements CouponTypeHandler {
 
     private final CouponRepository couponRepository;
     
