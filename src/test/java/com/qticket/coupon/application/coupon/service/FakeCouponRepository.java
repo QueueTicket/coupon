@@ -24,16 +24,16 @@ public class FakeCouponRepository implements CouponRepository {
     public static FakeCouponRepository getInstance() {
         return LazyHolder.instance;
     }
-    @Override
 
+    @Override
     public Coupon save(Coupon coupon) {
         if (coupon.getId() == null) {
             UUID uuid = UUID.randomUUID();
             ReflectionTestUtils.setField(coupon, "id", uuid);
         }
         couponStorage.put(coupon.getId(), coupon);
-        Coupon coupon1 = couponStorage.get(coupon.getId());
-        return coupon;
+        Coupon savedCoupon = couponStorage.get(coupon.getId());
+        return savedCoupon;
     }
 
     @Override

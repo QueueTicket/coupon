@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Entity(name = "coupons")
@@ -101,5 +100,8 @@ public class Coupon extends BaseEntity {
 
     public void issue() {
         this.issuedQuantity ++;
+    }
+    public boolean hasMaxQuantity() {
+        return maxQuantity != -1;
     }
 }

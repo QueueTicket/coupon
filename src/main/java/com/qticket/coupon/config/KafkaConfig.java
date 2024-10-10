@@ -11,8 +11,16 @@ import org.springframework.util.backoff.FixedBackOff;
 public class KafkaConfig {
 
     @Bean
-    public NewTopic couponTopic() {
-        return TopicBuilder.name("coupon-topic")
+    public NewTopic adminIssueCouponTopic() {
+        return TopicBuilder.name("admin-coupon-topic")
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic customerIssueCouponTopic() {
+        return TopicBuilder.name("customer-coupon-topic")
                 .partitions(1)
                 .replicas(1)
                 .build();

@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class IssueRequestDto {
+public class IssueByAdminRequestDto {
     private Long userId;
     private UUID couponId;
 }

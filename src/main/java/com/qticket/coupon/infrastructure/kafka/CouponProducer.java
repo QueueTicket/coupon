@@ -1,7 +1,8 @@
 package com.qticket.coupon.infrastructure.kafka;
 
-import com.qticket.coupon.application.coupon.dto.request.IssueRequestDto;
-import com.qticket.coupon.application.coupon.service.couponmessage.Producer;
+import com.qticket.coupon.application.coupon.dto.request.IssueByAdminRequestDto;
+import com.qticket.coupon.application.coupon.dto.request.IssueByCustomerRequestDto;
+import com.qticket.coupon.application.message.Producer;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.support.MessageBuilder;
@@ -17,10 +18,20 @@ public class CouponProducer implements Producer {
     }
 
     @Override
-    public void sendIssueCouponMessage(Long userId, String userRole, IssueRequestDto issueRequestDto) {
+    public void sendIssueByAdminMessage(Long userId, String userRole, IssueByAdminRequestDto issueRequestDto) {
         kafkaTemplate.send(
                 MessageBuilder.withPayload(issueRequestDto)
-                        .setHeader(KafkaHeaders.TOPIC, "coupon-topic")
+                        .setHeader(KafkaHeaders.TOPIC, "admin-coupon-topic")
+                        .setHeader("X-USER-ID", userId)
+                        .setHeader("X-USER-ROLE", userRole)
+                        .build());
+    }
+
+    @Override
+    public void sendIssueByCustomerMessage(Long userId, String userRole, IssueByCustomerRequestDto issueByCustomerRequestDto) {
+        kafkaTemplate.send(
+                MessageBuilder.withPayload(issueByCustomerRequestDto)
+                        .setHeader(KafkaHeaders.TOPIC, "customer-coupon-topic")
                         .setHeader("X-USER-ID", userId)
                         .setHeader("X-USER-ROLE", userRole)
                         .build());
