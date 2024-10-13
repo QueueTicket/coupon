@@ -20,5 +20,5 @@ public interface CouponService {
 
     void sendIssueByCustomer(Long userId, String userRole, IssueByCustomerRequestDto issueByCustomerRequestDto);
 
-    void IssueByCustomer(Long userId, IssueByCustomerRequestDto issueByCustomerRequestDto);
+    void issueByCustomer(Long userId, IssueByCustomerRequestDto issueByCustomerRequestDto);
 }

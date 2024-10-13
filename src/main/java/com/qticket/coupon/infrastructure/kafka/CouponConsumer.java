@@ -31,7 +31,7 @@ public class CouponConsumer implements Consumer {
     public void listenIssueByCustomerMessage(@Header("X-USER-ID") String userId, @Header("X-USER-ROLE") String userRole, IssueByCustomerRequestDto issueByCustomerRequestDto) {
 
         try {
-            couponService.IssueByCustomer(Long.parseLong(userId), issueByCustomerRequestDto);
+            couponService.issueByCustomer(Long.parseLong(userId), issueByCustomerRequestDto);
         } catch (AlreadyIssuedUserException e) {
             if (cacheRepository.getCouponQuantityById(issueByCustomerRequestDto.getCouponId()) != null) {
                 cacheRepository.increaseCouponQuantity(issueByCustomerRequestDto.getCouponId());
