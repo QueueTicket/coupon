@@ -2,6 +2,9 @@ package com.qticket.coupon.application.coupon.service;
 
 import com.qticket.coupon.application.coupon.dto.request.*;
 import com.qticket.coupon.application.coupon.dto.response.*;
+import com.qticket.coupon.domain.coupon.enums.CouponTarget;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
 
@@ -25,4 +28,6 @@ public interface CouponService {
     GetIssuedCouponResponseDto getIssuedCoupon(Long currentUserId, String currentUserRole, UUID couponId, Long userId);
 
     void apply(Long currentUserId, String currentUserRole, UUID couponId);
+
+    Page<GetCouponResponseDto> getCoupons(String currentUserRole, String search, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable);
 }

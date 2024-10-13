@@ -10,8 +10,12 @@ import com.qticket.coupon.application.coupon.dto.response.CouponDeleteResponseDt
 import com.qticket.coupon.application.coupon.dto.response.GetCouponResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.GetIssuedCouponResponseDto;
 import com.qticket.coupon.application.coupon.service.CouponService;
+import com.qticket.coupon.domain.coupon.enums.CouponTarget;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,5 +70,18 @@ public class CouponController {
     @ResponseStatus(HttpStatus.OK)
     public void apply(@Login CurrentUser currentUser, @PathVariable UUID couponId) {
         couponService.apply(currentUser.getCurrentUserId(), currentUser.getCurrentUserRole(), couponId);
+    }
+
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public Page<GetCouponResponseDto> getCoupons(
+            @Login CurrentUser currentUser,
+            @RequestParam @Nullable String search,
+            @RequestParam @Nullable String isDeleted,
+            @RequestParam @Nullable String status,
+            @RequestParam @Nullable CouponTarget target,
+            Pageable pageable
+    ) {
+        return couponService.getCoupons(currentUser.getCurrentUserRole(), search, isDeleted, target, status, pageable);
     }
 }

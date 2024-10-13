@@ -10,11 +10,14 @@ import com.qticket.coupon.application.eventclient.service.EventServiceClient;
 import com.qticket.coupon.application.message.Producer;
 import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeHandler;
 import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeRegistry;
+import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import com.qticket.coupon.domain.coupon.model.Coupon;
 import com.qticket.coupon.domain.coupon.repository.CouponRepository;
 import com.qticket.coupon.domain.couponuser.model.CouponUser;
 import com.qticket.coupon.domain.couponuser.repository.CouponUserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -240,5 +243,9 @@ public class CouponServiceImpl implements CouponService {
 
     private CouponUser getCouponUser(Long currentUserId, Coupon coupon) {
         return couponUserRepository.findByUserIdAndCoupon(currentUserId, coupon).orElseThrow(UserNotIssuedCouponException::new);
+    }
+
+    public Page<GetCouponResponseDto> getCoupons(String currentUserRole, String search, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
+        return couponRepository.getCoupons(currentUserRole, search, isDeleted, couponTarget, status, pageable);
     }
 }
