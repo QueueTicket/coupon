@@ -1,12 +1,14 @@
 package com.qticket.coupon.domain.couponseatgrade.model;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
+import com.qticket.common.BaseEntity;
 import com.qticket.coupon.domain.coupon.model.Coupon;
 import jakarta.persistence.*;
 
 import java.util.UUID;
 
 @Entity(name = "coupon_seat_grade")
-public class CouponSeatGrade {
+public class CouponSeatGrade extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

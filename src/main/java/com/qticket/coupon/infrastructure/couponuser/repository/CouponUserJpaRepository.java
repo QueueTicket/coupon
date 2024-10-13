@@ -6,9 +6,10 @@ import com.qticket.coupon.domain.couponuser.repository.CouponUserRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface CouponUserJpaRepository extends JpaRepository<CouponUser, UUID> {
 
-    List<CouponUser> findAllByUserIdAndCoupon(Long userId, Coupon coupon);
+    Optional<CouponUser> findByUserIdAndCoupon(Long userId, Coupon coupon);
 }

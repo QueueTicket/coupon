@@ -2,6 +2,8 @@ package com.qticket.coupon.application.coupon.service.coupontargethandler;
 
 import com.qticket.common.dto.ResponseDto;
 import com.qticket.coupon.application.coupon.dto.request.CouponCreateRequestDto;
+import com.qticket.coupon.application.coupon.dto.response.GetCouponResponseDto;
+import com.qticket.coupon.application.coupon.dto.response.GetIssuedCouponResponseDto;
 import com.qticket.coupon.application.eventclient.dto.response.GetOneResponseDto;
 import com.qticket.coupon.application.eventclient.service.EventServiceClient;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
@@ -9,6 +11,7 @@ import com.qticket.coupon.domain.coupon.model.Coupon;
 import com.qticket.coupon.domain.coupon.repository.CouponRepository;
 import com.qticket.coupon.domain.couponevent.model.CouponEvent;
 import com.qticket.coupon.domain.couponevent.repository.CouponEventRepository;
+import com.qticket.coupon.domain.couponuser.model.CouponUser;
 import com.qticket.coupon.infrastructure.eventclient.exception.EventAlreadyFinishedException;
 import com.qticket.coupon.infrastructure.eventclient.exception.EventNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,7 +65,7 @@ public class CouponEventTypeHandler implements CouponTypeHandler {
     }
 
     private void validateEventDate(GetOneResponseDto getOneResponseDto) {
-        if (LocalDateTime.now().isAfter(getOneResponseDto.getConcertStartTime())) {
+        if (LocalDateTime.now().isBefore(getOneResponseDto.getConcertStartTime())) {
             throw new EventAlreadyFinishedException();
         }
     }
@@ -69,5 +73,36 @@ public class CouponEventTypeHandler implements CouponTypeHandler {
     @Override
     public CouponTarget getType() {
         return CouponTarget.EVENT;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GetCouponResponseDto getCouponResponseDto(Coupon coupon) {
+        List<CouponEvent> allByCoupon = couponEventRepository.findAllByCoupon(coupon);
+        List<GetCouponResponseDto.ConcertDto> concertDtoList = getConcertDtoList(allByCoupon);
+
+        return new GetCouponResponseDto(coupon, concertDtoList);
+    }
+
+    private List<GetCouponResponseDto.ConcertDto> getConcertDtoList(List<CouponEvent> allByCoupon) {
+        ArrayList<GetCouponResponseDto.ConcertDto> concertDtoList = new ArrayList<>();
+        for (CouponEvent couponEvent : allByCoupon) {
+            try {
+                UUID eventId = couponEvent.getEventId();
+                GetOneResponseDto eventById = getEventById(eventId);
+                GetCouponResponseDto.ConcertDto concertDto = new GetCouponResponseDto.ConcertDto(eventById.getConcertId(), eventById.getConcertName());
+                concertDtoList.add(concertDto);
+            } catch (Exception e){
+
+            }
+        }
+        return concertDtoList;
+    }
+
+    @Override
+    public GetIssuedCouponResponseDto getIssuedCouponResponseDto(Coupon coupon, CouponUser couponUser) {
+        List<CouponEvent> allByCoupon = couponEventRepository.findAllByCoupon(coupon);
+        List<GetCouponResponseDto.ConcertDto> concertDtoList = getConcertDtoList(allByCoupon);
+        return new GetIssuedCouponResponseDto(coupon, concertDtoList, couponUser);
     }
 }

@@ -39,7 +39,7 @@ ext {
 
 dependencies {
 
-	implementation 'com.qticket:common:0.0.14'
+	implementation 'com.qticket:common:0.0.16'
 
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'

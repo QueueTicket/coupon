@@ -1,14 +1,12 @@
 package com.qticket.coupon.application.coupon.service;
 
+import com.qticket.common.dto.ResponseDto;
 import com.qticket.coupon.application.cache.CacheRepository;
 import com.qticket.coupon.application.coupon.dto.request.*;
-import com.qticket.coupon.application.coupon.dto.response.CouponCreateResponseDto;
-import com.qticket.coupon.application.coupon.dto.response.CouponDeleteResponseDto;
-import com.qticket.coupon.application.coupon.dto.response.CouponUpdateResponseDto;
-import com.qticket.coupon.application.coupon.exception.AlreadyIssuedUserException;
-import com.qticket.coupon.application.coupon.exception.CouponNotFoundException;
-import com.qticket.coupon.application.coupon.exception.CouponOutOfStockException;
-import com.qticket.coupon.application.coupon.exception.UnauthorizedAccessException;
+import com.qticket.coupon.application.coupon.dto.response.*;
+import com.qticket.coupon.application.coupon.exception.*;
+import com.qticket.coupon.application.eventclient.dto.response.GetOneResponseDto;
+import com.qticket.coupon.application.eventclient.service.EventServiceClient;
 import com.qticket.coupon.application.message.Producer;
 import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeHandler;
 import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeRegistry;
@@ -20,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -37,7 +35,7 @@ public class CouponServiceImpl implements CouponService {
     @Transactional
     public CouponCreateResponseDto create(Long userId, String userRole, CouponCreateRequestDto requestDto) {
 
-        isAdmin(userRole);
+        validateIsAdmin(userRole);
 
         CouponTypeHandler couponHandler = couponTypeRegistry.getCouponHandler(requestDto.getTarget());
         Coupon coupon = couponHandler.create(requestDto);
@@ -49,20 +47,32 @@ public class CouponServiceImpl implements CouponService {
         return new CouponCreateResponseDto(coupon.getId());
     }
 
-    private void isAdmin(String userRole) {
-        if (!"ADMIN".equals(userRole)) {
+    private void validateIsAdmin(String userRole) {
+        if (!(isAdmin(userRole))) {
             throw new UnauthorizedAccessException();
         }
+    }
+    private boolean isAdmin(String userRole) {
+        return "ADMIN".equals(userRole);
     }
 
     @Override
     @Transactional
-    public CouponDeleteResponseDto delete(Long userId, String userRole, CouponDeleteRequestDto couponDeleteRequestDto) {
-        isAdmin(userRole);
-        Coupon coupon = getCouponById(couponDeleteRequestDto.getCouponId());
+    public CouponDeleteResponseDto delete(Long userId, String userRole, UUID couponId) {
+        validateIsAdmin(userRole);
+        Coupon coupon = getCouponById(couponId);
+
+        validateAlreadyDeleted(coupon);
+
         coupon.softDelete(String.valueOf(userId));
         Coupon savedCoupon = couponRepository.save(coupon);
         return new CouponDeleteResponseDto(savedCoupon.getId());
+    }
+
+    private void validateAlreadyDeleted(Coupon coupon) {
+        if (coupon.isDelete()) {
+            throw new CouponAlreadyDeletedException();
+        }
     }
 
     private Coupon getCouponById(UUID couponId) {
@@ -73,7 +83,7 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @Transactional
     public CouponUpdateResponseDto update(Long userId, String userRole, UUID couponId, CouponUpdateRequestDto couponUpdateRequestDto) {
-        isAdmin(userRole);
+        validateIsAdmin(userRole);
         Coupon coupon = getCouponById(couponId);
         update(coupon, couponUpdateRequestDto);
         couponRepository.save(coupon);
@@ -95,7 +105,7 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public void sendIssueByAdminMessage(Long userId, String userRole, IssueByAdminRequestDto issueByAdminRequestDto) {
-        isAdmin(userRole);
+        validateIsAdmin(userRole);
         producer.sendIssueByAdminMessage(userId, userRole, issueByAdminRequestDto);
 
     }
@@ -107,8 +117,8 @@ public class CouponServiceImpl implements CouponService {
         Long userId = issueByAdminRequestDto.getUserId();
         Coupon coupon = getCouponById(couponId);
 
-        List<CouponUser> couponUsers = couponUserRepository.findAllByUserIdAndCoupon(userId, coupon);
-        validateAlreadyIssued(couponUsers);
+        Optional<CouponUser> savedCouponUser = couponUserRepository.findByUserIdAndCoupon(userId, coupon);
+        validateAlreadyIssued(savedCouponUser);
 
         CouponUser couponUser = CouponUser.create(userId, coupon);
         couponUserRepository.save(couponUser);
@@ -118,8 +128,8 @@ public class CouponServiceImpl implements CouponService {
     }
 
 
-    public void validateAlreadyIssued(List<CouponUser> couponUsers) {
-        if (!couponUsers.isEmpty()) {
+    public void validateAlreadyIssued(Optional<CouponUser> savedCouponUser) {
+        if (savedCouponUser.isPresent()) {
             throw new AlreadyIssuedUserException();
         }
     }
@@ -147,8 +157,8 @@ public class CouponServiceImpl implements CouponService {
         UUID couponId = issueByCustomerRequestDto.getCouponId();
         Coupon coupon = getCouponById(couponId);
 
-        List<CouponUser> couponUsers = couponUserRepository.findAllByUserIdAndCoupon(userId, coupon);
-        validateAlreadyIssued(couponUsers);
+        Optional<CouponUser> savedCouponUser = couponUserRepository.findByUserIdAndCoupon(userId, coupon);
+        validateAlreadyIssued(savedCouponUser);
 
         CouponUser couponUser = CouponUser.create(userId, coupon);
         couponUserRepository.save(couponUser);
@@ -159,7 +169,7 @@ public class CouponServiceImpl implements CouponService {
     }
 
     private void validate(String userRole, UUID couponId, Long userId) {
-        isCustomer(userRole);
+        validateIsCustomer(userRole);
         validateAlreadyIssued(couponId, userId);
     }
     private void validateAlreadyIssued(UUID couponId, Long userId) {
@@ -175,9 +185,60 @@ public class CouponServiceImpl implements CouponService {
         }
     }
 
-    private void isCustomer(String userRole) {
-        if (!userRole.equals("CUSTOMER")) {
+    private void validateIsCustomer(String userRole) {
+        if (!isCustomer(userRole)) {
             throw new UnauthorizedAccessException();
         }
+    }
+    private boolean isCustomer(String userRole) {
+        return userRole.equals("CUSTOMER");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GetCouponResponseDto getCoupon(String userRole, UUID couponId) {
+        Coupon coupon = getCouponById(couponId);
+        if (coupon.isDelete()) {
+            validateIsAdmin(userRole);
+        }
+
+        CouponTypeHandler couponHandler = couponTypeRegistry.getCouponHandler(coupon.getTarget());
+        return couponHandler.getCouponResponseDto(coupon);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GetIssuedCouponResponseDto getIssuedCoupon(Long currentUserId, String currentUserRole, UUID couponId, Long userId) {
+        if (isCustomer(currentUserRole) && !currentUserId.equals(userId)) {
+            throw new UnauthorizedAccessException();
+        }
+
+        Coupon coupon = getCouponById(couponId);
+
+        if (coupon.isDelete()) {
+            validateIsAdmin(currentUserRole);
+        }
+
+        CouponUser couponUser = getCouponUser(currentUserId, coupon);
+
+        CouponTypeHandler couponHandler = couponTypeRegistry.getCouponHandler(coupon.getTarget());
+        return couponHandler.getIssuedCouponResponseDto(coupon, couponUser);
+    }
+
+    @Override
+    @Transactional
+    public void apply(Long currentUserId, String currentUserRole, UUID couponId) {
+        validateIsCustomer(currentUserRole);
+
+        Coupon coupon = getCouponById(couponId);
+
+        CouponUser couponUser = getCouponUser(currentUserId, coupon);
+
+        couponUser.apply();
+        couponUserRepository.save(couponUser);
+    }
+
+    private CouponUser getCouponUser(Long currentUserId, Coupon coupon) {
+        return couponUserRepository.findByUserIdAndCoupon(currentUserId, coupon).orElseThrow(UserNotIssuedCouponException::new);
     }
 }

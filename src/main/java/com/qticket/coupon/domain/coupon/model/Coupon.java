@@ -1,6 +1,8 @@
 package com.qticket.coupon.domain.coupon.model;
 
 import com.qticket.common.BaseEntity;
+import com.qticket.coupon.application.coupon.exception.CouponAlreadyDeletedException;
+import com.qticket.coupon.application.coupon.exception.CouponAlreadyExpiredException;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import com.qticket.coupon.domain.coupon.enums.DiscountPolicy;
 import jakarta.persistence.*;
@@ -28,6 +30,9 @@ public class Coupon extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DiscountPolicy discountPolicy;
+
+    @Column(nullable = false)
+    private int maxDiscountPrice;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -57,6 +62,7 @@ public class Coupon extends BaseEntity {
     public static Coupon create(String name,
                                 int discountAmount,
                                 DiscountPolicy discountPolicy,
+                                int maxDiscountPrice,
                                 CouponTarget target,
                                 LocalDateTime startDate,
                                 LocalDateTime expirationDate,
@@ -103,5 +109,20 @@ public class Coupon extends BaseEntity {
     }
     public boolean hasMaxQuantity() {
         return maxQuantity != -1;
+    }
+
+    public void apply() {
+        validateUsable();
+        usageQuantity += 1;
+    }
+
+    private void validateUsable() {
+        if (expirationDate.isBefore(LocalDateTime.now())) {
+            throw new CouponAlreadyExpiredException();
+        }
+
+        if (isDelete()) {
+            throw new CouponAlreadyDeletedException();
+        }
     }
 }

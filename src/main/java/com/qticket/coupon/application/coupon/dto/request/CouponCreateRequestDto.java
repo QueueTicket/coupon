@@ -15,6 +15,7 @@ public class CouponCreateRequestDto {
     private String name;
     private int discountAmount;
     private DiscountPolicy discountPolicy;
+    private int maxDiscountPrice;
     private CouponTarget target;
     private LocalDateTime startDate;
     private LocalDateTime expirationDate;

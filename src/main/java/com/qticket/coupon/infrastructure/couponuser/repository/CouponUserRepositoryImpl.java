@@ -6,7 +6,7 @@ import com.qticket.coupon.domain.couponuser.repository.CouponUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,7 +20,7 @@ public class CouponUserRepositoryImpl implements CouponUserRepository {
     }
 
     @Override
-    public List<CouponUser> findAllByUserIdAndCoupon(Long userId, Coupon coupon) {
-        return couponUserJpaRepository.findAllByUserIdAndCoupon(userId, coupon);
+    public Optional<CouponUser> findByUserIdAndCoupon(Long userId, Coupon coupon) {
+        return couponUserJpaRepository.findByUserIdAndCoupon(userId, coupon);
     }
 }

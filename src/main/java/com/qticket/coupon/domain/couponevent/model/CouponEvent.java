@@ -1,5 +1,6 @@
 package com.qticket.coupon.domain.couponevent.model;
 
+import com.qticket.common.BaseEntity;
 import com.qticket.coupon.domain.coupon.model.Coupon;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -8,7 +9,7 @@ import java.util.UUID;
 
 @Entity(name = "coupon_events")
 @Getter
-public class CouponEvent {
+public class CouponEvent extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

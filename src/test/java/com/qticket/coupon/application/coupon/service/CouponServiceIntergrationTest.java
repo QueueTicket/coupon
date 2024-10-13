@@ -1,7 +1,6 @@
 package com.qticket.coupon.application.coupon.service;
 
 import com.qticket.coupon.application.coupon.dto.request.CouponCreateRequestDto;
-import com.qticket.coupon.application.coupon.dto.request.CouponDeleteRequestDto;
 import com.qticket.coupon.application.coupon.dto.request.CouponUpdateRequestDto;
 import com.qticket.coupon.application.coupon.dto.response.CouponCreateResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.CouponDeleteResponseDto;
