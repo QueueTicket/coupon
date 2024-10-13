@@ -142,6 +142,7 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
+    @Transactional
     public void IssueByCustomer(Long userId, IssueByCustomerRequestDto issueByCustomerRequestDto) {
         UUID couponId = issueByCustomerRequestDto.getCouponId();
         Coupon coupon = getCouponById(couponId);
