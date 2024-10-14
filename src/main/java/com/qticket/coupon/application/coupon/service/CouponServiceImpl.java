@@ -1,10 +1,7 @@
 package com.qticket.coupon.application.coupon.service;
 
 import com.qticket.coupon.application.cache.CacheRepository;
-import com.qticket.coupon.application.coupon.dto.request.CouponCreateRequestDto;
-import com.qticket.coupon.application.coupon.dto.request.CouponUpdateRequestDto;
-import com.qticket.coupon.application.coupon.dto.request.IssueByAdminRequestDto;
-import com.qticket.coupon.application.coupon.dto.request.IssueByCustomerRequestDto;
+import com.qticket.coupon.application.coupon.dto.request.*;
 import com.qticket.coupon.application.coupon.dto.response.*;
 import com.qticket.coupon.application.coupon.exception.*;
 import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeHandler;
@@ -261,6 +258,14 @@ public class CouponServiceImpl implements CouponService {
             throw new UnauthorizedAccessException();
         }
         return couponRepository.getIssuedCoupons(userId, isDeleted, couponTarget, usable, eventId, pageable);
+    }
+
+    @Override
+    public Page<GetCouponByAdminRequestDto> getCouponsByAdmin(Long currentUserId, String currentUserRole, Long userId, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
+        if (!isAdmin(currentUserRole)) {
+            throw new UnauthorizedAccessException();
+        }
+        return couponRepository.getCouponsByAdmin(userId, isDeleted, couponTarget, status, pageable);
     }
 
 

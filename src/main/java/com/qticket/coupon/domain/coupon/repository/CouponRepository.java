@@ -1,5 +1,6 @@
 package com.qticket.coupon.domain.coupon.repository;
 
+import com.qticket.coupon.application.coupon.dto.request.GetCouponByAdminRequestDto;
 import com.qticket.coupon.application.coupon.dto.response.GetCouponResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.GetIssuedCouponResponseDto;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
@@ -19,5 +20,7 @@ public interface CouponRepository {
     Page<GetCouponResponseDto> getCoupons(String search, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable);
 
     Page<GetIssuedCouponResponseDto> getIssuedCoupons(Long userId, String isDeleted, CouponTarget couponTarget, String usable, UUID eventId, Pageable pageable);
+
+    Page<GetCouponByAdminRequestDto> getCouponsByAdmin(Long userId, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable);
 }
 

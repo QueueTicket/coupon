@@ -3,6 +3,7 @@ package com.qticket.coupon.presentation;
 import com.qticket.common.login.CurrentUser;
 import com.qticket.common.login.Login;
 import com.qticket.coupon.application.coupon.dto.request.CouponCreateRequestDto;
+import com.qticket.coupon.application.coupon.dto.request.GetCouponByAdminRequestDto;
 import com.qticket.coupon.application.coupon.dto.request.IssueByAdminRequestDto;
 import com.qticket.coupon.application.coupon.dto.request.IssueByCustomerRequestDto;
 import com.qticket.coupon.application.coupon.dto.response.CouponCreateResponseDto;
@@ -14,6 +15,7 @@ import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.data.domain.Page;
@@ -100,5 +102,19 @@ public class CouponController {
             Pageable pageable
     ){
         return couponService.getIssuedCoupons(currentUser.getCurrentUserId(), currentUser.getCurrentUserRole(), userId, isDeleted, target, usable, eventId, pageable);
+    }
+
+    @GetMapping("/admin")
+    @ResponseStatus(HttpStatus.OK)
+    public Page<GetCouponByAdminRequestDto> getCouponsByAdmin(
+            @Login CurrentUser currentUser,
+            @RequestParam @Nullable Long userId,
+            @RequestParam @Nullable String isDeleted,
+            @RequestParam @Nullable CouponTarget target,
+            @RequestParam @Nullable String status,
+            Pageable pageable
+    ) {
+        return couponService.getCouponsByAdmin(currentUser.getCurrentUserId(), currentUser.getCurrentUserRole(), userId, isDeleted, target, status, pageable);
+
     }
 }

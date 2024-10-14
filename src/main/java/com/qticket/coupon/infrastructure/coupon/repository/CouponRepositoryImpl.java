@@ -1,5 +1,6 @@
 package com.qticket.coupon.infrastructure.coupon.repository;
 
+import com.qticket.coupon.application.coupon.dto.request.GetCouponByAdminRequestDto;
 import com.qticket.coupon.application.coupon.dto.response.GetCouponResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.GetIssuedCouponResponseDto;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
@@ -41,7 +42,10 @@ public class CouponRepositoryImpl implements CouponRepository {
         return couponQueryDSLRepository.getIssuedCoupons(userId,  isDeleted, couponTarget, usable, eventId, pageable);
     }
 
-
+    @Override
+    public Page<GetCouponByAdminRequestDto> getCouponsByAdmin(Long userId, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
+        return couponQueryDSLRepository.getCouponsByAdmin(userId, isDeleted, couponTarget, status, pageable);
+    }
 
 
 }

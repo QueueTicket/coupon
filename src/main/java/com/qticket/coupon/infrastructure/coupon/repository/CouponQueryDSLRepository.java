@@ -1,5 +1,6 @@
 package com.qticket.coupon.infrastructure.coupon.repository;
 
+import com.qticket.coupon.application.coupon.dto.request.GetCouponByAdminRequestDto;
 import com.qticket.coupon.application.coupon.dto.response.GetCouponResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.GetIssuedCouponResponseDto;
 import com.qticket.coupon.application.coupon.exception.UnauthorizedAccessException;
@@ -154,6 +155,9 @@ public class CouponQueryDSLRepository {
     }
 
     private BooleanExpression userEq(Long userId) {
+        if (userId == null) {
+            return Expressions.TRUE;
+        }
         return couponUser.userId.eq(userId);
     }
 
@@ -184,5 +188,36 @@ public class CouponQueryDSLRepository {
         return couponTarget != null && couponTarget.equals(CouponTarget.EVENT) ?
                 coupon.target.eq(CouponTarget.EVENT) :
                 coupon.target.eq(CouponTarget.ALL);
+    }
+
+    public Page<GetCouponByAdminRequestDto> getCouponsByAdmin(Long userId, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
+        List<Coupon> issuedCouponList = jpaQueryFactory
+                .selectFrom(coupon)
+                .leftJoin(couponUser).on(couponUser.coupon.eq(coupon))
+                .leftJoin(couponEvent).on(couponEvent.coupon.eq(coupon))
+                .where(
+                        userEq(userId),
+                        isDeleted(isDeleted),
+                        targetEq(couponTarget),
+                        statusEq(status)
+                ).offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(getSortOrder(pageable))
+                .fetch();
+
+        JPAQuery<Long> countQuery = jpaQueryFactory
+                .select(coupon.count())
+                .from(coupon)
+                .leftJoin(couponUser).on(couponUser.coupon.eq(coupon))
+                .leftJoin(couponEvent).on(couponEvent.coupon.eq(coupon))
+                .where(
+                        userEq(userId),
+                        isDeleted(isDeleted),
+                        targetEq(couponTarget),
+                        statusEq(status)
+                );
+        Page<Coupon> page = PageableExecutionUtils.getPage(issuedCouponList, pageable, countQuery::fetchOne);
+        return page.map(GetCouponByAdminRequestDto::new);
+
     }
 }
