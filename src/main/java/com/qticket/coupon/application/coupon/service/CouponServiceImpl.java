@@ -1,15 +1,15 @@
 package com.qticket.coupon.application.coupon.service;
 
-import com.qticket.common.dto.ResponseDto;
 import com.qticket.coupon.application.cache.CacheRepository;
-import com.qticket.coupon.application.coupon.dto.request.*;
+import com.qticket.coupon.application.coupon.dto.request.CouponCreateRequestDto;
+import com.qticket.coupon.application.coupon.dto.request.CouponUpdateRequestDto;
+import com.qticket.coupon.application.coupon.dto.request.IssueByAdminRequestDto;
+import com.qticket.coupon.application.coupon.dto.request.IssueByCustomerRequestDto;
 import com.qticket.coupon.application.coupon.dto.response.*;
 import com.qticket.coupon.application.coupon.exception.*;
-import com.qticket.coupon.application.eventclient.dto.response.GetOneResponseDto;
-import com.qticket.coupon.application.eventclient.service.EventServiceClient;
-import com.qticket.coupon.application.message.Producer;
 import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeHandler;
 import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeRegistry;
+import com.qticket.coupon.application.message.Producer;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import com.qticket.coupon.domain.coupon.model.Coupon;
 import com.qticket.coupon.domain.coupon.repository.CouponRepository;
@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -194,7 +195,7 @@ public class CouponServiceImpl implements CouponService {
         }
     }
     private boolean isCustomer(String userRole) {
-        return userRole.equals("CUSTOMER");
+        return "CUSTOMER".equals(userRole);
     }
 
     @Override
@@ -246,6 +247,21 @@ public class CouponServiceImpl implements CouponService {
     }
 
     public Page<GetCouponResponseDto> getCoupons(String currentUserRole, String search, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
-        return couponRepository.getCoupons(currentUserRole, search, isDeleted, couponTarget, status, pageable);
+
+        if (List.of("ALL", "DELETED").contains(isDeleted) && !isAdmin(currentUserRole)) {
+            throw new UnauthorizedAccessException();
+        }
+
+        return couponRepository.getCoupons(search, isDeleted, couponTarget, status, pageable);
     }
+
+    @Override
+    public Page<GetIssuedCouponResponseDto> getIssuedCoupons(Long currentUserId, String currentUserRole, Long userId, String isDeleted, CouponTarget couponTarget, String usable, UUID eventId, Pageable pageable) {
+        if (!isAdmin(currentUserRole) && currentUserId != userId) {
+            throw new UnauthorizedAccessException();
+        }
+        return couponRepository.getIssuedCoupons(userId, isDeleted, couponTarget, usable, eventId, pageable);
+    }
+
+
 }

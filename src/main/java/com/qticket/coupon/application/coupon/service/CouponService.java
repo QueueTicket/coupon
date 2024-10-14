@@ -30,4 +30,6 @@ public interface CouponService {
     void apply(Long currentUserId, String currentUserRole, UUID couponId);
 
     Page<GetCouponResponseDto> getCoupons(String currentUserRole, String search, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable);
+
+    Page<GetIssuedCouponResponseDto> getIssuedCoupons(Long currentUserId, String currentUserRole, Long userId, String isDeleted, CouponTarget couponTarget, String usable, UUID eventId, Pageable pageable);
 }

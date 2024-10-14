@@ -87,4 +87,15 @@ public class GetIssuedCouponResponseDto {
         updateUsable();
 
     }
+
+    public GetIssuedCouponResponseDto(Coupon coupon) {
+        GetCouponResponseDto.DiscountInfo discount = new GetCouponResponseDto.DiscountInfo(coupon.getDiscountAmount(), coupon.getDiscountPolicy(), coupon.getMaxDiscountPrice());
+
+        couponId = coupon.getId();
+        couponName = coupon.getName();
+        discountInfo = discount;
+        expirationDate = coupon.getExpirationDate();
+        target = coupon.getTarget();
+        updateUsable();
+    }
 }

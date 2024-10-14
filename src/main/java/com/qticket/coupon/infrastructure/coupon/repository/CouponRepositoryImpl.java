@@ -1,6 +1,7 @@
 package com.qticket.coupon.infrastructure.coupon.repository;
 
 import com.qticket.coupon.application.coupon.dto.response.GetCouponResponseDto;
+import com.qticket.coupon.application.coupon.dto.response.GetIssuedCouponResponseDto;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import com.qticket.coupon.domain.coupon.model.Coupon;
 import com.qticket.coupon.domain.coupon.repository.CouponRepository;
@@ -31,9 +32,16 @@ public class CouponRepositoryImpl implements CouponRepository {
     }
 
     @Override
-    public Page<GetCouponResponseDto> getCoupons(String currentUserRole, String search, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
-        return couponQueryDSLRepository.getCoupons(currentUserRole, search, isDeleted, couponTarget, status, pageable);
+    public Page<GetCouponResponseDto> getCoupons(String search, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
+        return couponQueryDSLRepository.getCoupons(search, isDeleted, couponTarget, status, pageable);
     }
+
+    @Override
+    public Page<GetIssuedCouponResponseDto> getIssuedCoupons(Long userId, String isDeleted, CouponTarget couponTarget, String usable, UUID eventId, Pageable pageable) {
+        return couponQueryDSLRepository.getIssuedCoupons(userId,  isDeleted, couponTarget, usable, eventId, pageable);
+    }
+
+
 
 
 }

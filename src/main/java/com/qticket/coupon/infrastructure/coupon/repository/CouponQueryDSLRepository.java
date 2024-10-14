@@ -1,9 +1,11 @@
 package com.qticket.coupon.infrastructure.coupon.repository;
 
 import com.qticket.coupon.application.coupon.dto.response.GetCouponResponseDto;
+import com.qticket.coupon.application.coupon.dto.response.GetIssuedCouponResponseDto;
 import com.qticket.coupon.application.coupon.exception.UnauthorizedAccessException;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import com.qticket.coupon.domain.coupon.model.Coupon;
+import com.qticket.coupon.domain.couponevent.model.QCouponEvent;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -18,8 +20,11 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static com.qticket.coupon.domain.coupon.model.QCoupon.coupon;
+import static com.qticket.coupon.domain.couponevent.model.QCouponEvent.couponEvent;
+import static com.qticket.coupon.domain.couponuser.model.QCouponUser.couponUser;
 
 @Repository
 @RequiredArgsConstructor
@@ -27,14 +32,14 @@ public class CouponQueryDSLRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 
-    public Page<GetCouponResponseDto> getCoupons(String currentUserRole, String search, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
+    public Page<GetCouponResponseDto> getCoupons(String search, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
         List<Coupon> couponList = jpaQueryFactory
                 .selectFrom(coupon)
                 .where(
                         search(search),
                         targetEq(couponTarget),
                         statusEq(status),
-                        isDeleted(isDeleted, currentUserRole)
+                        isDeleted(isDeleted)
                 ).offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(getSortOrder(pageable))
@@ -46,7 +51,7 @@ public class CouponQueryDSLRepository {
                         search(search),
                         targetEq(couponTarget),
                         statusEq(status),
-                        isDeleted(isDeleted, currentUserRole)
+                        isDeleted(isDeleted)
                 );
         Page<Coupon> page = PageableExecutionUtils.getPage(couponList, pageable, countQuery::fetchOne);
         return page.map(GetCouponResponseDto::new);
@@ -64,18 +69,12 @@ public class CouponQueryDSLRepository {
         return Expressions.TRUE;
     }
 
-    private BooleanExpression isDeleted(String isDeleted, String userRole) {
+    private BooleanExpression isDeleted(String isDeleted) {
         if ("ALL".equals(isDeleted)) {
-            if (!"ADMIN".equals(userRole)) {
-                throw new UnauthorizedAccessException();
-            }
             return Expressions.TRUE;
         }
 
-        if ("Deleted".equals(isDeleted)) {
-            if (!"ADMIN".equals(userRole)) {
-                throw new UnauthorizedAccessException();
-            }
+        if ("DELETED".equals(isDeleted)) {
             return coupon.isDelete.isTrue();
         }
 
@@ -88,7 +87,7 @@ public class CouponQueryDSLRepository {
             return Expressions.TRUE;
         }
 
-        if ("Expired".equals(status)) {
+        if ("EXPIRED".equals(status)) {
             return coupon.expirationDate.before(LocalDateTime.now()).or(coupon.maxQuantity.ne(-1)
                     .and(coupon.maxQuantity.loe(coupon.issuedQuantity)));
         }
@@ -120,5 +119,70 @@ public class CouponQueryDSLRepository {
             default:
                 throw new UnauthorizedAccessException();
         }
+    }
+
+
+    public Page<GetIssuedCouponResponseDto> getIssuedCoupons(Long userId, String isDeleted, CouponTarget couponTarget, String usable, UUID eventId, Pageable pageable) {
+        List<Coupon> issuedCouponList = jpaQueryFactory
+                .selectFrom(coupon)
+                .leftJoin(couponUser).on(couponUser.coupon.eq(coupon))
+                .leftJoin(couponEvent).on(couponEvent.coupon.eq(coupon))
+                .where(
+                        userEq(userId),
+                        isDeleted(isDeleted),
+                        eventTargetOrEventIdEq(couponTarget, eventId),
+                        usableEq(usable)
+                ).offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(getSortOrder(pageable))
+                .fetch();
+
+        JPAQuery<Long> countQuery = jpaQueryFactory
+                .select(coupon.count())
+                .from(coupon)
+                .leftJoin(couponUser).on(couponUser.coupon.eq(coupon))
+                .leftJoin(couponEvent).on(couponEvent.coupon.eq(coupon))
+                .where(
+                        userEq(userId),
+                        isDeleted(isDeleted),
+                        eventTargetOrEventIdEq(couponTarget, eventId),
+                        usableEq(usable)
+                );
+        Page<Coupon> page = PageableExecutionUtils.getPage(issuedCouponList, pageable, countQuery::fetchOne);
+        return page.map(GetIssuedCouponResponseDto::new);
+
+    }
+
+    private BooleanExpression userEq(Long userId) {
+        return couponUser.userId.eq(userId);
+    }
+
+    private BooleanExpression usableEq(String usable) {
+        if ("ALL".equals(usable)) {
+            return Expressions.TRUE;
+        }
+
+        if ("UNUSABLE".equals(usable)) {
+            return couponUser.usageLimit.loe(couponUser.usageCount)
+                    .or(coupon.expirationDate.before(LocalDateTime.now()));
+
+        }
+
+        return couponUser.usageLimit.gt(couponUser.usageCount)
+                .and(coupon.expirationDate.after(LocalDateTime.now()));
+
+    }
+
+    private BooleanExpression eventTargetOrEventIdEq(CouponTarget couponTarget, UUID eventId) {
+        if (eventId != null) {
+            // eventId가 전달된 경우: 해당 eventId에 적용 가능한 모든 쿠폰(ALL, EVENT)
+            return coupon.target.eq(CouponTarget.ALL)
+                    .or(coupon.target.eq(CouponTarget.EVENT).and(couponEvent.eventId.eq(eventId)));
+        }
+
+        // eventId가 없을 경우: 이벤트 타겟이 EVENT일 때만 해당 쿠폰을 보여줌
+        return couponTarget != null && couponTarget.equals(CouponTarget.EVENT) ?
+                coupon.target.eq(CouponTarget.EVENT) :
+                coupon.target.eq(CouponTarget.ALL);
     }
 }
