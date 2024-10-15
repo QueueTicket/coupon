@@ -244,9 +244,10 @@ public class CouponServiceImpl implements CouponService {
         return couponUserRepository.findByUserIdAndCoupon(currentUserId, coupon).orElseThrow(UserNotIssuedCouponException::new);
     }
 
+    @Override
     public Page<GetCouponResponseDto> getCoupons(String currentUserRole, String search, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
 
-        if (List.of("ALL", "DELETED").contains(isDeleted) && !isAdmin(currentUserRole)) {
+        if (isDeleted != null && List.of("ALL", "DELETED").contains(isDeleted) && !isAdmin(currentUserRole)) {
             throw new UnauthorizedAccessException();
         }
 

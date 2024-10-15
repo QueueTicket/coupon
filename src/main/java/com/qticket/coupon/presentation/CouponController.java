@@ -43,6 +43,11 @@ public class CouponController {
     @GetMapping("/{couponId}")
     @ResponseStatus(HttpStatus.OK)
     public GetCouponResponseDto getCoupon(@Login CurrentUser currentUser, @PathVariable UUID couponId) {
+        // todo
+        // coupon/couponId 가 permitAll
+        // 1번 : 로그인 안한 유저: 게이트웨이 -> 로그인 필터를 거치지 않음
+        // 2번 : 로그인 한 유저(관리자) : 게이트웨이 -> 로그인 필터를 거침
+
         return couponService.getCoupon(currentUser.getCurrentUserRole(), couponId);
     }
 
@@ -76,6 +81,7 @@ public class CouponController {
             @RequestParam @Nullable CouponTarget target,
             Pageable pageable
     ) {
+
         return couponService.getCoupons(currentUser.getCurrentUserRole(), search, isDeleted, target, status, pageable);
     }
 
