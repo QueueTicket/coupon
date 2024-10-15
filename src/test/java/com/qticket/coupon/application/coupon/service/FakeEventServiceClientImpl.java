@@ -1,7 +1,6 @@
 package com.qticket.coupon.application.coupon.service;
 
 import com.qticket.common.dto.ResponseDto;
-import com.qticket.coupon.application.eventclient.dto.response.GetOneResponseDto;
 import com.qticket.coupon.application.eventclient.service.EventServiceClient;
 import org.springframework.http.HttpStatus;
 

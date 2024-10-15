@@ -44,7 +44,7 @@ public class CouponUser extends BaseEntity {
         usageCount += 1;
     }
 
-    private void validateUsable() {
+    public void validateUsable() {
         if (usageCount >= usageLimit) {
             throw new UsageLimitExceedException();
         }

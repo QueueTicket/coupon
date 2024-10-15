@@ -4,7 +4,8 @@ import com.qticket.common.dto.ResponseDto;
 import com.qticket.coupon.application.coupon.dto.request.CouponCreateRequestDto;
 import com.qticket.coupon.application.coupon.dto.response.GetCouponResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.GetIssuedCouponResponseDto;
-import com.qticket.coupon.application.eventclient.dto.response.GetOneResponseDto;
+import com.qticket.coupon.application.coupon.exception.InvalidEventForCouponException;
+import com.qticket.coupon.application.eventclient.dto.response.GetEventResponseDto;
 import com.qticket.coupon.application.eventclient.service.EventServiceClient;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import com.qticket.coupon.domain.coupon.model.Coupon;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -56,15 +58,15 @@ public class CouponEventTypeHandler implements CouponTypeHandler {
                 .forEach(this::validateEventDate);
     }
 
-    private GetOneResponseDto getEventById(UUID eventId) {
-        ResponseDto<GetOneResponseDto> response = eventServiceClient.getOne(eventId);
+    private GetEventResponseDto getEventById(UUID eventId) {
+        ResponseDto<GetEventResponseDto> response = eventServiceClient.getEvent(eventId);
         if (response.getStatus().equals("error")) {
             throw new EventNotFoundException();
         }
         return response.getData();
     }
 
-    private void validateEventDate(GetOneResponseDto getOneResponseDto) {
+    private void validateEventDate(GetEventResponseDto getOneResponseDto) {
         if (LocalDateTime.now().isBefore(getOneResponseDto.getConcertStartTime())) {
             throw new EventAlreadyFinishedException();
         }
@@ -89,8 +91,8 @@ public class CouponEventTypeHandler implements CouponTypeHandler {
         for (CouponEvent couponEvent : allByCoupon) {
             try {
                 UUID eventId = couponEvent.getEventId();
-                GetOneResponseDto eventById = getEventById(eventId);
-                GetCouponResponseDto.ConcertDto concertDto = new GetCouponResponseDto.ConcertDto(eventById.getConcertId(), eventById.getConcertName());
+                GetEventResponseDto eventById = getEventById(eventId);
+                GetCouponResponseDto.ConcertDto concertDto = new GetCouponResponseDto.ConcertDto(eventById.getConcertId(), eventById.getConcertTitle());
                 concertDtoList.add(concertDto);
             } catch (Exception e){
 
@@ -104,5 +106,10 @@ public class CouponEventTypeHandler implements CouponTypeHandler {
         List<CouponEvent> allByCoupon = couponEventRepository.findAllByCoupon(coupon);
         List<GetCouponResponseDto.ConcertDto> concertDtoList = getConcertDtoList(allByCoupon);
         return new GetIssuedCouponResponseDto(coupon, concertDtoList, couponUser);
+    }
+
+    @Override
+    public void validate(Long userId, Coupon coupon, UUID eventId) {
+        couponEventRepository.findByCouponAndEventId(coupon, eventId).orElseThrow(InvalidEventForCouponException::new);
     }
 }

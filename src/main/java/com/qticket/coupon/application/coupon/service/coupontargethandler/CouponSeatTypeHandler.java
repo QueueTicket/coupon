@@ -7,6 +7,8 @@ import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import com.qticket.coupon.domain.coupon.model.Coupon;
 import com.qticket.coupon.domain.couponuser.model.CouponUser;
 
+import java.util.UUID;
+
 public class CouponSeatTypeHandler implements CouponTypeHandler {
     @Override
     public Coupon create(CouponCreateRequestDto couponCreateRequestDto) {
@@ -26,5 +28,10 @@ public class CouponSeatTypeHandler implements CouponTypeHandler {
     @Override
     public GetIssuedCouponResponseDto getIssuedCouponResponseDto(Coupon coupon, CouponUser couponUser) {
         return null;
+    }
+
+    @Override
+    public void validate(Long userId, Coupon coupon, UUID eventId) {
+
     }
 }

@@ -13,11 +13,7 @@ import com.qticket.coupon.application.coupon.dto.response.GetIssuedCouponRespons
 import com.qticket.coupon.application.coupon.service.CouponService;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Null;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -27,7 +23,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/coupons")
+@RequestMapping("/coupons")
 public class CouponController {
 
     private final CouponService couponService;
@@ -116,5 +112,11 @@ public class CouponController {
     ) {
         return couponService.getCouponsByAdmin(currentUser.getCurrentUserId(), currentUser.getCurrentUserRole(), userId, isDeleted, target, status, pageable);
 
+    }
+
+    @GetMapping("/validate")
+    @ResponseStatus(HttpStatus.OK)
+    public void validate(Long userId, UUID couponId, UUID eventId, Long price) {
+        couponService.validate(userId, couponId, eventId, price); 
     }
 }

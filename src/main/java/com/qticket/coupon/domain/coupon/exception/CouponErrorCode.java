@@ -18,6 +18,8 @@ public enum CouponErrorCode implements ErrorCode {
     USER_NOT_ISSUED_COUPON(HttpStatus.BAD_REQUEST, "유저가 해당 쿠폰을 발급 받지 않았습니다."),
     USAGE_LIMIT_EXCEED(HttpStatus.BAD_REQUEST, "쿠폰 사용 횟수를 초과하였습니다."),
     COUPON_ALREADY_EXPIRED(HttpStatus.BAD_REQUEST, "이미 만료된 쿠폰입니다."),
+    MINIMUM_PRICE_NOT_SATISFIED_EXCEPTION(HttpStatus.BAD_REQUEST, "결제 금액이 쿠폰의 최소 주문 가격보다 작습니다."),
+    INVALID_EVENT_FOR_COUPON(HttpStatus.BAD_REQUEST, "요청 받은 공연에 적용할 수 없는 쿠폰입니다."),
     ;
 
     private final HttpStatus status;

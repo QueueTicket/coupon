@@ -20,6 +20,9 @@ public interface CouponTypeHandler {
 
     GetIssuedCouponResponseDto getIssuedCouponResponseDto(Coupon coupon, CouponUser couponUser);
 
+    void validate(Long userId, Coupon coupon, UUID eventId);
+
+
     static Coupon toEntity(CouponCreateRequestDto requestDto) {
         return Coupon.create(
                 requestDto.getName(),

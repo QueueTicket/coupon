@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -268,5 +269,31 @@ public class CouponServiceImpl implements CouponService {
         return couponRepository.getCouponsByAdmin(userId, isDeleted, couponTarget, status, pageable);
     }
 
+
+    // 1. 최소 금액 검증
+    // 2. 유저가 발급 받은 쿠폰인지 검증
+    // 3. 만료 시간 검증
+    // 4. 사용 횟수 검증
+    // 5. 각 쿠폰 별로 로직 검증
+    @Override
+    public void validate(Long userId, UUID couponId, UUID eventId, Long price) {
+        Coupon coupon = getCouponById(couponId);
+        CouponUser couponUser = getCouponUser(userId, coupon);
+
+        if (coupon.getMinSpendAmount() > price) {
+            throw new MinimumPriceNotSatisfiedException();
+        }
+
+        // 만료 검증
+        // 삭제된 쿠폰인지 검증
+        coupon.validateUsable();
+
+        // 사용 가능 횟수 검증
+        couponUser.validateUsable();
+
+        CouponTypeHandler couponHandler = couponTypeRegistry.getCouponHandler(coupon.getTarget());
+        couponHandler.validate(userId, coupon, eventId);
+
+    }
 
 }

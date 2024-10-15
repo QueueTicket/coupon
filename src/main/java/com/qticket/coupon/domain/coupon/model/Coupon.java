@@ -116,7 +116,7 @@ public class Coupon extends BaseEntity {
         usageQuantity += 1;
     }
 
-    private void validateUsable() {
+    public void validateUsable() {
         if (expirationDate.isBefore(LocalDateTime.now())) {
             throw new CouponAlreadyExpiredException();
         }

@@ -7,7 +7,6 @@ import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import com.qticket.coupon.domain.coupon.model.Coupon;
 import com.qticket.coupon.domain.coupon.repository.CouponRepository;
 import com.qticket.coupon.domain.couponuser.model.CouponUser;
-import com.qticket.coupon.domain.couponuser.repository.CouponUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +39,10 @@ public class CouponAllTypeHandler implements CouponTypeHandler {
     @Override
     public GetIssuedCouponResponseDto getIssuedCouponResponseDto(Coupon coupon, CouponUser couponUser) {
         return new GetIssuedCouponResponseDto(coupon, couponUser);
+    }
+
+    @Override
+    public void validate(Long userId, Coupon coupon, UUID eventId) {
     }
 
 
