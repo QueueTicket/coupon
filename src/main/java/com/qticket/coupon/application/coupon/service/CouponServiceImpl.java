@@ -276,7 +276,7 @@ public class CouponServiceImpl implements CouponService {
     // 4. 사용 횟수 검증
     // 5. 각 쿠폰 별로 로직 검증
     @Override
-    public void validate(Long userId, UUID couponId, UUID eventId, Long price) {
+    public CouponValidateResponseDto validate(Long userId, UUID couponId, UUID eventId, Long price) {
         Coupon coupon = getCouponById(couponId);
         CouponUser couponUser = getCouponUser(userId, coupon);
 
@@ -294,6 +294,7 @@ public class CouponServiceImpl implements CouponService {
         CouponTypeHandler couponHandler = couponTypeRegistry.getCouponHandler(coupon.getTarget());
         couponHandler.validate(userId, coupon, eventId);
 
+        return new CouponValidateResponseDto(couponId, coupon.getDiscountAmount(), coupon.getDiscountPolicy(), coupon.getDiscountAmount());
     }
 
 }

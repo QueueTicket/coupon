@@ -2,14 +2,8 @@ package com.qticket.coupon.presentation;
 
 import com.qticket.common.login.CurrentUser;
 import com.qticket.common.login.Login;
-import com.qticket.coupon.application.coupon.dto.request.CouponCreateRequestDto;
-import com.qticket.coupon.application.coupon.dto.request.GetCouponByAdminRequestDto;
-import com.qticket.coupon.application.coupon.dto.request.IssueByAdminRequestDto;
-import com.qticket.coupon.application.coupon.dto.request.IssueByCustomerRequestDto;
-import com.qticket.coupon.application.coupon.dto.response.CouponCreateResponseDto;
-import com.qticket.coupon.application.coupon.dto.response.CouponDeleteResponseDto;
-import com.qticket.coupon.application.coupon.dto.response.GetCouponResponseDto;
-import com.qticket.coupon.application.coupon.dto.response.GetIssuedCouponResponseDto;
+import com.qticket.coupon.application.coupon.dto.request.*;
+import com.qticket.coupon.application.coupon.dto.response.*;
 import com.qticket.coupon.application.coupon.service.CouponService;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import jakarta.annotation.Nullable;
@@ -116,7 +110,7 @@ public class CouponController {
 
     @GetMapping("/validate")
     @ResponseStatus(HttpStatus.OK)
-    public void validate(Long userId, UUID couponId, UUID eventId, Long price) {
-        couponService.validate(userId, couponId, eventId, price); 
+    public CouponValidateResponseDto validate(@RequestBody CouponValidateRequestDto couponValidateRequestDto) {
+        return couponService.validate(couponValidateRequestDto.getUserId(), couponValidateRequestDto.getCouponId(), couponValidateRequestDto.getEventId(), couponValidateRequestDto.getPrice());
     }
 }

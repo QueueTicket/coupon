@@ -35,5 +35,5 @@ public interface CouponService {
 
     Page<GetCouponByAdminRequestDto> getCouponsByAdmin(Long currentUserId, String currentUserRole, Long userId, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable);
 
-    void validate(Long userId, UUID couponId, UUID eventId, Long price);
+    CouponValidateResponseDto validate(Long userId, UUID couponId, UUID eventId, Long price);
 }
