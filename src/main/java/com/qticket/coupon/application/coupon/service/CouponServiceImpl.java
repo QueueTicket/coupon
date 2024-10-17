@@ -8,6 +8,7 @@ import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponT
 import com.qticket.coupon.application.coupon.service.coupontargethandler.CouponTypeRegistry;
 import com.qticket.coupon.application.message.Producer;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
+import com.qticket.coupon.domain.coupon.enums.DiscountPolicy;
 import com.qticket.coupon.domain.coupon.model.Coupon;
 import com.qticket.coupon.domain.coupon.repository.CouponRepository;
 import com.qticket.coupon.domain.couponuser.model.CouponUser;
@@ -39,6 +40,8 @@ public class CouponServiceImpl implements CouponService {
 
         validateIsAdmin(userRole);
 
+        validateCreateRequestDto(requestDto);
+
         CouponTypeHandler couponHandler = couponTypeRegistry.getCouponHandler(requestDto.getTarget());
         Coupon coupon = couponHandler.create(requestDto);
 
@@ -48,6 +51,39 @@ public class CouponServiceImpl implements CouponService {
 
         return new CouponCreateResponseDto(coupon.getId());
     }
+
+    private void validateCreateRequestDto(CouponCreateRequestDto requestDto) {
+        validateCouponTime(requestDto);
+        validateDiscountAmount(requestDto);
+        validateDiscountPercentage(requestDto);
+    }
+
+    private void validateCouponTime(CouponCreateRequestDto requestDto) {
+        if (requestDto.getStartDate().isAfter(requestDto.getExpirationDate()) || requestDto.getStartDate().isEqual(requestDto.getExpirationDate())) {
+            throw new CouponTimeInvalidException();
+        }
+
+        if (requestDto.getExpirationDate().isBefore(LocalDateTime.now())) {
+            throw new CouponTimeInvalidException();
+        }
+
+        if (requestDto.getStartDate().isBefore(LocalDateTime.now())) {
+            throw new CouponTimeInvalidException();
+        }
+    }
+
+    private void validateDiscountAmount(CouponCreateRequestDto requestDto) {
+        if (DiscountPolicy.FIXED.equals(requestDto.getDiscountPolicy()) && requestDto.getDiscountAmount() != requestDto.getMaxDiscountPrice()) {
+            throw new DiscountAmountNotMatchMaxDiscountPriceException();
+        }
+    }
+
+    private void validateDiscountPercentage(CouponCreateRequestDto requestDto) {
+        if (DiscountPolicy.PERCENTAGE.equals(requestDto.getDiscountPolicy()) && requestDto.getDiscountAmount() > 100) {
+            throw new DiscountRateExceedsLimitException();
+        }
+    }
+
 
     private void validateIsAdmin(String userRole) {
         if (!(isAdmin(userRole))) {
@@ -108,9 +144,30 @@ public class CouponServiceImpl implements CouponService {
     @Override
     public void sendIssueByAdminMessage(Long userId, String userRole, IssueByAdminRequestDto issueByAdminRequestDto) {
         validateIsAdmin(userRole);
-        producer.sendIssueByAdminMessage(userId, userRole, issueByAdminRequestDto);
+        Coupon coupon = getCouponById(issueByAdminRequestDto.getCouponId());
 
+        validateCouponStartDate(coupon.getStartDate());
+        validateUnLimitedCoupon(coupon);
+
+        producer.sendIssueByAdminMessage(userId, userRole, issueByAdminRequestDto);
     }
+
+    private void validateUnLimitedCoupon(Coupon coupon) {
+        if (coupon.getMaxQuantity() != -1) {
+            throw new AdminIssueOnlyUnlimitedCouponException();
+        }
+    }
+
+    private boolean isStartDateBeforeNow(LocalDateTime startDate) {
+        return LocalDateTime.now().isBefore(startDate);
+    }
+
+    private void validateCouponStartDate(LocalDateTime startDate) {
+        if (isStartDateBeforeNow(startDate)) {
+            throw new CouponTimeInvalidException();
+        }
+    }
+
 
     @Override
     @Transactional
@@ -146,11 +203,23 @@ public class CouponServiceImpl implements CouponService {
 
         if (coupon.hasMaxQuantity()) {
             Long stockQuantity = cacheRepository.decreaseCouponQuantity(couponId);
-            validateCouponQuantity(stockQuantity, couponId);
+            validateCustomerIssue(stockQuantity, couponId, coupon.getStartDate());
             cacheRepository.issueCoupon(couponId, userId);
         }
 
         producer.sendIssueByCustomerMessage(userId, userRole, issueByCustomerRequestDto);
+    }
+
+    private boolean isInvalidCouponQuantity(Long couponQuantity) {
+        return couponQuantity != null && couponQuantity < 0;
+    }
+
+    private void validateCustomerIssue(Long couponQuantity, UUID couponId, LocalDateTime startDate) {
+        if (isInvalidCouponQuantity(couponQuantity) || isStartDateBeforeNow(startDate)) {
+            cacheRepository.increaseCouponQuantity(couponId);
+            throw new CouponOutOfStockException();
+        }
+
     }
 
     @Override
@@ -180,12 +249,8 @@ public class CouponServiceImpl implements CouponService {
         }
     }
 
-    private void validateCouponQuantity(Long couponQuantity, UUID couponId) {
-        if (couponQuantity != null && couponQuantity < 0) {
-            cacheRepository.increaseCouponQuantity(couponId);
-            throw new CouponOutOfStockException();
-        }
-    }
+
+
 
     private void validateIsCustomer(String userRole) {
         if (!isCustomer(userRole)) {
@@ -263,7 +328,7 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
-    public Page<GetCouponByAdminRequestDto> getCouponsByAdmin(Long currentUserId, String currentUserRole, Long userId, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
+    public Page<GetCouponByAdminResponseDto> getCouponsByAdmin(Long currentUserId, String currentUserRole, Long userId, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
         if (!isAdmin(currentUserRole)) {
             throw new UnauthorizedAccessException();
         }

@@ -7,6 +7,7 @@ import com.qticket.coupon.application.coupon.dto.response.*;
 import com.qticket.coupon.application.coupon.service.CouponService;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,19 +25,19 @@ public class CouponController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public CouponCreateResponseDto create(@Login CurrentUser currentUser, @RequestBody CouponCreateRequestDto couponCreateRequestDto) {
+    public CouponCreateResponseDto create(@Login CurrentUser currentUser,@Valid @RequestBody CouponCreateRequestDto couponCreateRequestDto) {
         return couponService.create(currentUser.getCurrentUserId(), currentUser.getCurrentUserRole(), couponCreateRequestDto);
     }
 
     @PostMapping("/admin-issue")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void issueByAdmin(@Login CurrentUser currentUser, @RequestBody IssueByAdminRequestDto issueByAdminRequestDto) {
+    public void issueByAdmin(@Login CurrentUser currentUser, @Valid @RequestBody IssueByAdminRequestDto issueByAdminRequestDto) {
         couponService.sendIssueByAdminMessage(currentUser.getCurrentUserId(), currentUser.getCurrentUserRole(), issueByAdminRequestDto);
     }
 
     @PostMapping("/customer-issue")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void issueByCustomer(@Login CurrentUser currentUser, @RequestBody IssueByCustomerRequestDto issueByCustomerRequestDto) {
+    public void issueByCustomer(@Login CurrentUser currentUser, @Valid @RequestBody IssueByCustomerRequestDto issueByCustomerRequestDto) {
         couponService.sendIssueByCustomer(currentUser.getCurrentUserId(), currentUser.getCurrentUserRole(), issueByCustomerRequestDto);
     }
 
@@ -102,7 +103,7 @@ public class CouponController {
 
     @GetMapping("/admin")
     @ResponseStatus(HttpStatus.OK)
-    public Page<GetCouponByAdminRequestDto> getCouponsByAdmin(
+    public Page<GetCouponByAdminResponseDto> getCouponsByAdmin(
             @Login CurrentUser currentUser,
             @RequestParam @Nullable Long userId,
             @RequestParam @Nullable String isDeleted,
@@ -116,7 +117,7 @@ public class CouponController {
 
     @GetMapping("/validate")
     @ResponseStatus(HttpStatus.OK)
-    public CouponValidateResponseDto validate(@RequestBody CouponValidateRequestDto couponValidateRequestDto) {
+    public CouponValidateResponseDto validate(@Valid @RequestBody CouponValidateRequestDto couponValidateRequestDto) {
         return couponService.validate(couponValidateRequestDto.getUserId(), couponValidateRequestDto.getCouponId(), couponValidateRequestDto.getEventId(), couponValidateRequestDto.getPrice());
     }
 }

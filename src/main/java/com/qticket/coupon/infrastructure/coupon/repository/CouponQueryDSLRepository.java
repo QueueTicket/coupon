@@ -1,12 +1,11 @@
 package com.qticket.coupon.infrastructure.coupon.repository;
 
-import com.qticket.coupon.application.coupon.dto.request.GetCouponByAdminRequestDto;
+import com.qticket.coupon.application.coupon.dto.response.GetCouponByAdminResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.GetCouponResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.GetIssuedCouponResponseDto;
 import com.qticket.coupon.application.coupon.exception.UnauthorizedAccessException;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import com.qticket.coupon.domain.coupon.model.Coupon;
-import com.qticket.coupon.domain.couponevent.model.QCouponEvent;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -190,7 +189,7 @@ public class CouponQueryDSLRepository {
                 coupon.target.eq(CouponTarget.ALL);
     }
 
-    public Page<GetCouponByAdminRequestDto> getCouponsByAdmin(Long userId, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
+    public Page<GetCouponByAdminResponseDto> getCouponsByAdmin(Long userId, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
         List<Coupon> issuedCouponList = jpaQueryFactory
                 .selectFrom(coupon)
                 .leftJoin(couponUser).on(couponUser.coupon.eq(coupon))
@@ -217,7 +216,7 @@ public class CouponQueryDSLRepository {
                         statusEq(status)
                 );
         Page<Coupon> page = PageableExecutionUtils.getPage(issuedCouponList, pageable, countQuery::fetchOne);
-        return page.map(GetCouponByAdminRequestDto::new);
+        return page.map(GetCouponByAdminResponseDto::new);
 
     }
 }

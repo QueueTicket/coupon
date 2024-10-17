@@ -1,4 +1,4 @@
-package com.qticket.coupon.application.coupon.dto.request;
+package com.qticket.coupon.application.coupon.dto.response;
 
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import com.qticket.coupon.domain.coupon.enums.DiscountPolicy;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class GetCouponByAdminRequestDto {
+public class GetCouponByAdminResponseDto {
 
     private UUID couponId;
     private String name;
@@ -31,7 +31,7 @@ public class GetCouponByAdminRequestDto {
     private int usageLimit;
     private int usageQuantity ;
 
-    public GetCouponByAdminRequestDto(Coupon coupon) {
+    public GetCouponByAdminResponseDto(Coupon coupon) {
         couponId = coupon.getId();
         name = coupon.getName();
         discountAmount = coupon.getDiscountAmount();

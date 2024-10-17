@@ -33,7 +33,7 @@ public interface CouponService {
 
     Page<GetIssuedCouponResponseDto> getIssuedCoupons(Long currentUserId, String currentUserRole, Long userId, String isDeleted, CouponTarget couponTarget, String usable, UUID eventId, Pageable pageable);
 
-    Page<GetCouponByAdminRequestDto> getCouponsByAdmin(Long currentUserId, String currentUserRole, Long userId, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable);
+    Page<GetCouponByAdminResponseDto> getCouponsByAdmin(Long currentUserId, String currentUserRole, Long userId, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable);
 
     CouponValidateResponseDto validate(Long userId, UUID couponId, UUID eventId, Long price);
 }

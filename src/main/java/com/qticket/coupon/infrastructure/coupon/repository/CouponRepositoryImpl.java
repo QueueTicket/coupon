@@ -1,18 +1,16 @@
 package com.qticket.coupon.infrastructure.coupon.repository;
 
-import com.qticket.coupon.application.coupon.dto.request.GetCouponByAdminRequestDto;
+import com.qticket.coupon.application.coupon.dto.response.GetCouponByAdminResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.GetCouponResponseDto;
 import com.qticket.coupon.application.coupon.dto.response.GetIssuedCouponResponseDto;
 import com.qticket.coupon.domain.coupon.enums.CouponTarget;
 import com.qticket.coupon.domain.coupon.model.Coupon;
 import com.qticket.coupon.domain.coupon.repository.CouponRepository;
-import com.qticket.coupon.infrastructure.coupon.repository.CouponJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -43,7 +41,7 @@ public class CouponRepositoryImpl implements CouponRepository {
     }
 
     @Override
-    public Page<GetCouponByAdminRequestDto> getCouponsByAdmin(Long userId, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
+    public Page<GetCouponByAdminResponseDto> getCouponsByAdmin(Long userId, String isDeleted, CouponTarget couponTarget, String status, Pageable pageable) {
         return couponQueryDSLRepository.getCouponsByAdmin(userId, isDeleted, couponTarget, status, pageable);
     }
 
