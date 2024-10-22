@@ -11,6 +11,7 @@ env:
   ECS_TASK_DEFINITION: coupon_task_definition.json    # ECS Task Definition 경로 (.json 파일)
   CONTAINER_NAME: coupon-app                          # Task Definition에서의 컨테이너 이름
   DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/coupon        # Docker Hub 이미지 이름
+  GITHUB_TOKEN: ${{ GITHUB_TOKEN }}
 
 permissions:
   contents: read
