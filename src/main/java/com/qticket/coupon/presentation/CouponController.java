@@ -120,4 +120,5 @@ public class CouponController {
     public CouponValidateResponseDto validate(@Valid @RequestBody CouponValidateRequestDto couponValidateRequestDto) {
         return couponService.validate(couponValidateRequestDto.getUserId(), couponValidateRequestDto.getCouponId(), couponValidateRequestDto.getEventId(), couponValidateRequestDto.getPrice());
     }
+
 }
